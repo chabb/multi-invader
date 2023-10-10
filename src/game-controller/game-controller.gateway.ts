@@ -1,4 +1,5 @@
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -8,9 +9,10 @@ import {
 } from '@nestjs/websockets';
 
 import { Server, Socket } from 'socket.io';
-import {PlayersService} from "../players/players.service";
-import {UnRegisteredGuard} from "../register/unregister.guard";
-import {RegisteredGuard} from "../register/register.guard";
+import { PlayersService } from '../players/players.service';
+import { UnRegisteredGuard } from '../register/unregister.guard';
+import { RegisteredGuard } from '../register/register.guard';
+import { UseGuards } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
@@ -20,33 +22,37 @@ import {RegisteredGuard} from "../register/register.guard";
 export class GameControllerGateway
   implements OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect
 {
-  constructor(private readonly playerService: PlayersService) {
-  }
-
+  constructor(private readonly playerService: PlayersService) {}
 
   @UseGuards(UnRegisteredGuard)
   @SubscribeMessage('register')
-  handleMessage(@MessageBody('id') id: string): void {
-    this.playerService.addPlayer(id);
+  handleRegistration(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+    console.log('new player registration');
+    socket.emit('registered', { id: socket.id }, () => {
+      console.log(`player ${socket.id} connected`);
+      this.playerService.addPlayer(id);
+      // send current state
+
+      // notify other players
+    });
   }
 
   @UseGuards(RegisteredGuard)
   @SubscribeMessage('events')
-  handleMessage(client: any, payload: any): string {
+  handleEvents(client: any, payload: any): string {
     return 'Hello world!';
   }
 
   afterInit(server: Server): void {
-    console.log('Server started, path : ', server.path);
+    console.log('Server started, config : ', server._opts);
   }
 
   handleConnection(socket: Socket): void {
-    socket.emit('registered', { id: socket.id }, () => {
-      console.log(`player ${socket.id} connected`);
-    });
+    console.log('Client connecting...', socket.id);
   }
 
   handleDisconnect(socket: Socket): void {
     console.log(` Client ${socket.id} disconnected`);
+    this.playerService.removePlayer(socket.id);
   }
 }

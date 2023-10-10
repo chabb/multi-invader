@@ -1,12 +1,11 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import {Socket} from "socket.io";
-import {PlayersService} from "../players/players.service";
+import { Socket } from 'socket.io';
+import { PlayersService } from '../players/players.service';
 
 @Injectable()
 export class RegisteredGuard implements CanActivate {
-
-  constructor(private readonly playerService: PlayersService) { }
+  constructor(private readonly playerService: PlayersService) {}
 
   canActivate(
     context: ExecutionContext,

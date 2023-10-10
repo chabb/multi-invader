@@ -1,0 +1,21 @@
+(SERVER START)
+1-CREATE THE TURRETS
+(PLAYER CONNECT)
+1-PASS THE TURRETS
+2-PASS ITS POSITION
+(PLAYER CONNECT)
+1-PASS THE TURRETS
+2-PASS ITS POSITION
+3-PASS OTHER PLAYER POSITION
+
+FOR NON-PLAYER ON CLIENT
+-update the variable, action are
+move
+stop
+rotateLeft
+rotateRight
+shoot
+-client update things
+-if collision, its sent to the server as an event
+-if a turret is destroyed, we remove it. sent to everybody EXCEPT THE AUTHOR ( do we win ). Note that we just say, "remove turret at index 'n'"
+-if a player is touched, sent to everybody EXCEPT THE PLAYER ( do we win )

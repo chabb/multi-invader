@@ -1,12 +1,11 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import {Socket} from "socket.io";
-import {PlayersService} from "../players/players.service";
+import { Socket } from 'socket.io';
+import { PlayersService } from '../players/players.service';
 
 @Injectable()
 export class UnRegisteredGuard implements CanActivate {
-
-  constructor(private readonly playerService: PlayersService) { }
+  constructor(private readonly playerService: PlayersService) {}
 
   canActivate(
     context: ExecutionContext,
@@ -14,6 +13,7 @@ export class UnRegisteredGuard implements CanActivate {
     const argumentsHost = context.switchToWs();
     const socket: Socket = argumentsHost.getClient();
     const data = argumentsHost.getData();
+    console.log(socket.id, data.id, this.playerService.isActive(socket.id));
     return socket.id === data.id && !this.playerService.isActive(socket.id);
   }
 }
