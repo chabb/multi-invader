@@ -4,7 +4,7 @@ import {Socket} from "socket.io";
 import {PlayersService} from "../players/players.service";
 
 @Injectable()
-export class RegisteredGuard implements CanActivate {
+export class UnRegisteredGuard implements CanActivate {
 
   constructor(private readonly playerService: PlayersService) { }
 
@@ -14,6 +14,8 @@ export class RegisteredGuard implements CanActivate {
     const argumentsHost = context.switchToWs();
     const socket: Socket = argumentsHost.getClient();
     const data = argumentsHost.getData();
-    return socket.id === data.id && this.playerService.isActive(socket.id);
+    return socket.id === data.id && !this.playerService.isActive(socket.id);
   }
 }
+
+//TODO(chab) use reflection to create a decorator with a boolean attribute
