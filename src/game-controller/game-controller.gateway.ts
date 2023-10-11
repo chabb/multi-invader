@@ -33,25 +33,29 @@ export class GameControllerGateway
   @UseGuards(UnRegisteredGuard)
   @SubscribeMessage('register')
   handleRegistration(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
-    this.log.log('new player registration');
+    this.log.log(`new player registration ${id}`);
     socket.emit('registered', { id: socket.id }, () => {
       this.log.log(`player ${socket.id} connected`);
-      this.playerService.addPlayer(id);
+      const player = this.playerService.createPlayer(id);
       this.log.debug('current number of player', this.playerService.getPlayers().length);
       // send current state
-      socket.emit('state', {turrets: this.turretService.getTurrets()}, () => {
+      socket.emit('state', {
+        turrets: this.turretService.getTurrets(),
+        player: this.playerService.getPlayers().length
+      }, ({x, y}) => {
         this.log.log(`game state sent to ${socket.id}`)
-      });
-      this.playerService.getPlayers().forEach(playerId => {
-        if( playerId !== id) {
-          socket.emit('player', {}, () => {
-            this.log.log(`player ${playerId} info sent to player`, playerId)
-          });
-        }
+        this.playerService.addPlayer({...player, x, y});
+        this.playerService.getPlayers().forEach(playerId => {
+          if( playerId !== socket.id) {
+            this.log.log('sending new player state');
+            socket.emit('player', {id, index: this.playerService.getPlayers().length}, () => {
+              this.log.log(`player ${playerId} info sent to player`, socket.id)
+            });
+          }
+        });
       });
     });
   }
-
   @UseGuards(RegisteredGuard)
   @SubscribeMessage('events')
   handleEvents(client: any, payload: any): string {

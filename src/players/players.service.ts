@@ -1,30 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { Player } from './player.interface';
-import { ConfigService } from '@nestjs/config';
+import {Injectable} from '@nestjs/common';
+import {Player} from './player.interface';
+import {ConfigService} from '@nestjs/config';
 
 @Injectable()
 export class PlayersService {
-  constructor(private readonly conf: ConfigService) {}
+    constructor(private readonly conf: ConfigService) {
+    }
 
-  private players: { [id: string]: Player } = {};
+    private players: { [id: string]: Player } = {};
 
-  getPlayers(): string[] {
-    return Object.keys(this.players);
-  }
+    getPlayers(): string[] {
+        return Object.keys(this.players);
+    }
 
-  isActive(id: string): boolean {
-    return !!this.players[id];
-  }
+    isActive(id: string): boolean {
+        return !!this.players[id];
+    }
 
-  addPlayer(id: string): void {
-    this.players[id] = {
-      lifePoint: this.conf.get('MAXLIFE'),
-      x: 20 * Object.keys(this.players).length + 1,
-      y: 20 * Object.keys(this.players).length + 1
-    };
-  }
+    addPlayer(player: Player): void {
+        this.players[player.id] = player
+    }
 
-  removePlayer(id: string): void {
-    delete this.players[id];
-  }
+    createPlayer(id): Omit<Player, 'x' | 'y'> {
+        return {
+            lifePoint: this.conf.get('MAXLIFE'),
+            id
+        };
+    }
+
+    removePlayer(id: string): void {
+        delete this.players[id];
+    }
 }

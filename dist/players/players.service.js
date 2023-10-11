@@ -23,11 +23,13 @@ let PlayersService = class PlayersService {
     isActive(id) {
         return !!this.players[id];
     }
-    addPlayer(id) {
-        this.players[id] = {
+    addPlayer(player) {
+        this.players[player.id] = player;
+    }
+    createPlayer(id) {
+        return {
             lifePoint: this.conf.get('MAXLIFE'),
-            x: 20 * Object.keys(this.players).length + 1,
-            y: 20 * Object.keys(this.players).length + 1
+            id
         };
     }
     removePlayer(id) {
