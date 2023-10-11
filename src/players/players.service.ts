@@ -8,6 +8,10 @@ export class PlayersService {
 
   private players: { [id: string]: Player } = {};
 
+  getPlayers(): string[] {
+    return Object.keys(this.players);
+  }
+
   isActive(id: string): boolean {
     return !!this.players[id];
   }

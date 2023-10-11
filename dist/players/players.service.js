@@ -17,6 +17,9 @@ let PlayersService = class PlayersService {
         this.conf = conf;
         this.players = {};
     }
+    getPlayers() {
+        return Object.keys(this.players);
+    }
     isActive(id) {
         return !!this.players[id];
     }

@@ -1,13 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import {Logger} from "@nestjs/common";
 
 async function bootstrap() {
+  const log = new Logger();
   const app = await NestFactory.create(AppModule);
-  console.log('Configuration, TURRETS', app.get(ConfigService).get('TURRETS'));
-  console.log('Configuration, WIDTH', app.get(ConfigService).get('WIDTH'));
-  console.log('Configuration, HEIGHT', app.get(ConfigService).get('HEIGHT'));
-  console.log('Configuration, MAXLIFE', app.get(ConfigService).get('MAXLIFE'));
-  await app.listen(3000);
+  log.log(`Configuration, TURRETS ${app.get(ConfigService).get('TURRETS')}`);
+  log.log(`Configuration, WIDTH ${app.get(ConfigService).get('WIDTH')}`);
+  log.log(`Configuration, HEIGHT ${app.get(ConfigService).get('HEIGHT')}`);
+  log.log(`Configuration, MAXLIFE ${app.get(ConfigService).get('TURRETS')}`);
+  await app.listen(app.get(ConfigService).get('PORT'));
+
 }
-bootstrap();
+bootstrap().then(r => console.log('waiting....'));

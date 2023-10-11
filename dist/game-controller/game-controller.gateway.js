@@ -19,28 +19,41 @@ const players_service_1 = require("../players/players.service");
 const unregister_guard_1 = require("../register/unregister.guard");
 const register_guard_1 = require("../register/register.guard");
 const common_1 = require("@nestjs/common");
+const turret_service_1 = require("../turret/turret.service");
 let GameControllerGateway = class GameControllerGateway {
-    constructor(playerService) {
+    constructor(turretService, playerService) {
+        this.turretService = turretService;
         this.playerService = playerService;
+        this.log = new common_1.Logger();
     }
     handleRegistration(id, socket) {
-        console.log('new player registration');
+        this.log.log('new player registration');
         socket.emit('registered', { id: socket.id }, () => {
-            console.log(`player ${socket.id} connected`);
+            this.log.log(`player ${socket.id} connected`);
             this.playerService.addPlayer(id);
+            socket.emit('state', { turrets: this.turretService.getTurrets() }, () => {
+                this.log.log(`game state sent to ${socket.id}`);
+            });
+            this.playerService.getPlayers().forEach(playerId => {
+                if (playerId !== id) {
+                    socket.emit('player', {}, () => {
+                        this.log.log(`player ${playerId} info sent to player`, playerId);
+                    });
+                }
+            });
         });
     }
     handleEvents(client, payload) {
         return 'Hello world!';
     }
     afterInit(server) {
-        console.log('Server started, config : ', server._opts);
+        this.log.warn('Server started, config : ', server._opts);
     }
     handleConnection(socket) {
-        console.log('Client connecting...', socket.id);
+        this.log.log('Client connecting...', socket.id);
     }
     handleDisconnect(socket) {
-        console.log(` Client ${socket.id} disconnected`);
+        this.log.warn(` Client ${socket.id} disconnected`);
         this.playerService.removePlayer(socket.id);
     }
 };
@@ -67,6 +80,7 @@ exports.GameControllerGateway = GameControllerGateway = __decorate([
             origin: '*',
         },
     }),
-    __metadata("design:paramtypes", [players_service_1.PlayersService])
+    __metadata("design:paramtypes", [turret_service_1.TurretService,
+        players_service_1.PlayersService])
 ], GameControllerGateway);
 //# sourceMappingURL=game-controller.gateway.js.map

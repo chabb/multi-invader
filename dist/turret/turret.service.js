@@ -32,6 +32,9 @@ let TurretService = class TurretService {
     removeTurret(index) {
         this.turrets.splice(index, 1);
     }
+    getTurrets() {
+        return [...this.turrets];
+    }
 };
 exports.TurretService = TurretService;
 exports.TurretService = TurretService = __decorate([

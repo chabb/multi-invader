@@ -23,6 +23,10 @@ export class TurretService {
   private removeTurret(index: number) {
     this.turrets.splice(index, 1);
   }
+
+  public getTurrets() {
+    return [...this.turrets];
+  }
 }
 
 interface Turret {
