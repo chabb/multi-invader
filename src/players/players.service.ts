@@ -19,6 +19,8 @@ export class PlayersService {
   addPlayer(id: string): void {
     this.players[id] = {
       lifePoint: this.conf.get('MAXLIFE'),
+      x: 20 * Object.keys(this.players).length + 1,
+      y: 20 * Object.keys(this.players).length + 1
     };
   }
 

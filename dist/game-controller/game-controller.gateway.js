@@ -31,6 +31,7 @@ let GameControllerGateway = class GameControllerGateway {
         socket.emit('registered', { id: socket.id }, () => {
             this.log.log(`player ${socket.id} connected`);
             this.playerService.addPlayer(id);
+            this.log.debug('current number of player', this.playerService.getPlayers().length);
             socket.emit('state', { turrets: this.turretService.getTurrets() }, () => {
                 this.log.log(`game state sent to ${socket.id}`);
             });

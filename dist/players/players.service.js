@@ -26,6 +26,8 @@ let PlayersService = class PlayersService {
     addPlayer(id) {
         this.players[id] = {
             lifePoint: this.conf.get('MAXLIFE'),
+            x: 20 * Object.keys(this.players).length + 1,
+            y: 20 * Object.keys(this.players).length + 1
         };
     }
     removePlayer(id) {
