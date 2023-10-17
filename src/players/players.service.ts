@@ -1,6 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {Player} from './player.interface';
 import {ConfigService} from '@nestjs/config';
+import {of} from "rxjs";
 
 @Injectable()
 export class PlayersService {
@@ -8,6 +9,10 @@ export class PlayersService {
     }
 
     private players: { [id: string]: Player } = {};
+
+    numberOfPlayers(): number {
+        return this.getPlayers().length;
+    }
 
     getPlayers(): string[] {
         return Object.keys(this.players);
@@ -21,10 +26,14 @@ export class PlayersService {
         this.players[player.id] = player
     }
 
-    createPlayer(id): Omit<Player, 'x' | 'y'> {
+    createPlayer(id): Player {
+        let offsetDirection = Math.random() > 0.5 ? 1 : -1;
+        let numberOfPlayets = this.numberOfPlayers()
         return {
             lifePoint: this.conf.get('MAXLIFE'),
-            id
+            id,
+            x: 300 + numberOfPlayets * 50 * offsetDirection,
+            y: 300 + numberOfPlayets * 50 * offsetDirection
         };
     }
 

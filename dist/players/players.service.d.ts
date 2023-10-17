@@ -4,9 +4,10 @@ export declare class PlayersService {
     private readonly conf;
     constructor(conf: ConfigService);
     private players;
+    numberOfPlayers(): number;
     getPlayers(): string[];
     isActive(id: string): boolean;
     addPlayer(player: Player): void;
-    createPlayer(id: any): Omit<Player, 'x' | 'y'>;
+    createPlayer(id: any): Player;
     removePlayer(id: string): void;
 }

@@ -25,6 +25,7 @@ export class GameControllerGateway
 {
 
   private readonly log = new Logger();
+  private server: Server;
   constructor(
       private readonly turretService: TurretService,
       private readonly playerService: PlayersService,
@@ -41,14 +42,15 @@ export class GameControllerGateway
       // send current state
       socket.emit('state', {
         turrets: this.turretService.getTurrets(),
+        playerTank: player,
         player: this.playerService.getPlayers().length
-      }, ({x, y}) => {
+      }, () => {
         this.log.log(`game state sent to ${socket.id}`)
-        this.playerService.addPlayer({...player, x, y});
+        this.playerService.addPlayer(player);
         this.playerService.getPlayers().forEach(playerId => {
           if( playerId !== socket.id) {
             this.log.log('sending new player state');
-            socket.emit('player', {id, index: this.playerService.getPlayers().length}, () => {
+            this.server.sockets.sockets.get(playerId).emit('player', {id: socket.id, index: this.playerService.getPlayers().length, player}, () => {
               this.log.log(`player ${playerId} info sent to player`, socket.id)
             });
           }
@@ -57,13 +59,64 @@ export class GameControllerGateway
     });
   }
   @UseGuards(RegisteredGuard)
-  @SubscribeMessage('events')
-  handleEvents(client: any, payload: any): string {
-    return 'Hello world!';
+  @SubscribeMessage('stop')
+  stop(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+    this.playerService.getPlayers().forEach(playerId => {
+      if( playerId !== socket.id) {
+        this.log.log('[stop] sending new player state');
+        this.server.sockets.sockets.get(playerId).emit('stop', {id})
+      }
+    });
+  }
+
+  @UseGuards(RegisteredGuard)
+  @SubscribeMessage('forward')
+  handleEvents(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+    this.log.log(`forward ${socket.id}-${id}`);
+    this.playerService.getPlayers().forEach(playerId => {
+      if( playerId !== socket.id) {
+        this.log.log(`sending new player state from ${id} to ${playerId}`);
+        this.server.sockets.sockets.get(playerId).emit('forward', {id})
+      }
+    });
+  }
+
+  @UseGuards(RegisteredGuard)
+  @SubscribeMessage('rotateRight')
+  rotateRight(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+    this.playerService.getPlayers().forEach(playerId => {
+      if( playerId !== socket.id) {
+        this.log.log('[rotateRight] sending new player state');
+        this.server.sockets.sockets.get(playerId).emit('rotateRight', {id})
+      }
+    });
+  }
+
+  @UseGuards(RegisteredGuard)
+  @SubscribeMessage('rotateLeft')
+  rotateLeft(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+    this.playerService.getPlayers().forEach(playerId => {
+      if( playerId !== socket.id) {
+        this.log.log('[rotateLeft] sending new player state');
+        this.server.sockets.sockets.get(playerId).emit('rotateLeft', {id})
+      }
+    });
+  }
+
+  @UseGuards(RegisteredGuard)
+  @SubscribeMessage('stopRotation')
+  stopRotation(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+    this.playerService.getPlayers().forEach(playerId => {
+      if( playerId !== socket.id) {
+        this.log.log('[stopRotation] sending new player state');
+        this.server.sockets.sockets.get(playerId).emit('stopRotation', {id})
+      }
+    });
   }
 
   afterInit(server: Server): void {
     this.log.warn('Server started, config : ', server._opts);
+    this.server = server;
   }
 
   handleConnection(socket: Socket): void {

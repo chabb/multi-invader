@@ -34,14 +34,15 @@ let GameControllerGateway = class GameControllerGateway {
             this.log.debug('current number of player', this.playerService.getPlayers().length);
             socket.emit('state', {
                 turrets: this.turretService.getTurrets(),
+                playerTank: player,
                 player: this.playerService.getPlayers().length
-            }, ({ x, y }) => {
+            }, () => {
                 this.log.log(`game state sent to ${socket.id}`);
-                this.playerService.addPlayer({ ...player, x, y });
+                this.playerService.addPlayer(player);
                 this.playerService.getPlayers().forEach(playerId => {
                     if (playerId !== socket.id) {
                         this.log.log('sending new player state');
-                        socket.emit('player', { id, index: this.playerService.getPlayers().length }, () => {
+                        this.server.sockets.sockets.get(playerId).emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
                             this.log.log(`player ${playerId} info sent to player`, socket.id);
                         });
                     }
@@ -49,11 +50,50 @@ let GameControllerGateway = class GameControllerGateway {
             });
         });
     }
-    handleEvents(client, payload) {
-        return 'Hello world!';
+    stop(id, socket) {
+        this.playerService.getPlayers().forEach(playerId => {
+            if (playerId !== socket.id) {
+                this.log.log('[stop] sending new player state');
+                this.server.sockets.sockets.get(playerId).emit('stop', { id });
+            }
+        });
+    }
+    handleEvents(id, socket) {
+        this.log.log(`forward ${socket.id}-${id}`);
+        this.playerService.getPlayers().forEach(playerId => {
+            if (playerId !== socket.id) {
+                this.log.log(`sending new player state from ${id} to ${playerId}`);
+                this.server.sockets.sockets.get(playerId).emit('forward', { id });
+            }
+        });
+    }
+    rotateRight(id, socket) {
+        this.playerService.getPlayers().forEach(playerId => {
+            if (playerId !== socket.id) {
+                this.log.log('[rotateRight] sending new player state');
+                this.server.sockets.sockets.get(playerId).emit('rotateRight', { id });
+            }
+        });
+    }
+    rotateLeft(id, socket) {
+        this.playerService.getPlayers().forEach(playerId => {
+            if (playerId !== socket.id) {
+                this.log.log('[rotateLeft] sending new player state');
+                this.server.sockets.sockets.get(playerId).emit('rotateLeft', { id });
+            }
+        });
+    }
+    stopRotation(id, socket) {
+        this.playerService.getPlayers().forEach(playerId => {
+            if (playerId !== socket.id) {
+                this.log.log('[stopRotation] sending new player state');
+                this.server.sockets.sockets.get(playerId).emit('stopRotation', { id });
+            }
+        });
     }
     afterInit(server) {
         this.log.warn('Server started, config : ', server._opts);
+        this.server = server;
     }
     handleConnection(socket) {
         this.log.log('Client connecting...', socket.id);
@@ -75,11 +115,49 @@ __decorate([
 ], GameControllerGateway.prototype, "handleRegistration", null);
 __decorate([
     (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
-    (0, websockets_1.SubscribeMessage)('events'),
+    (0, websockets_1.SubscribeMessage)('stop'),
+    __param(0, (0, websockets_1.MessageBody)('id')),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", String)
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GameControllerGateway.prototype, "stop", null);
+__decorate([
+    (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
+    (0, websockets_1.SubscribeMessage)('forward'),
+    __param(0, (0, websockets_1.MessageBody)('id')),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
 ], GameControllerGateway.prototype, "handleEvents", null);
+__decorate([
+    (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
+    (0, websockets_1.SubscribeMessage)('rotateRight'),
+    __param(0, (0, websockets_1.MessageBody)('id')),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GameControllerGateway.prototype, "rotateRight", null);
+__decorate([
+    (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
+    (0, websockets_1.SubscribeMessage)('rotateLeft'),
+    __param(0, (0, websockets_1.MessageBody)('id')),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GameControllerGateway.prototype, "rotateLeft", null);
+__decorate([
+    (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
+    (0, websockets_1.SubscribeMessage)('stopRotation'),
+    __param(0, (0, websockets_1.MessageBody)('id')),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GameControllerGateway.prototype, "stopRotation", null);
 exports.GameControllerGateway = GameControllerGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {

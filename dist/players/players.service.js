@@ -17,6 +17,9 @@ let PlayersService = class PlayersService {
         this.conf = conf;
         this.players = {};
     }
+    numberOfPlayers() {
+        return this.getPlayers().length;
+    }
     getPlayers() {
         return Object.keys(this.players);
     }
@@ -27,9 +30,13 @@ let PlayersService = class PlayersService {
         this.players[player.id] = player;
     }
     createPlayer(id) {
+        let offsetDirection = Math.random() > 0.5 ? 1 : -1;
+        let numberOfPlayets = this.numberOfPlayers();
         return {
             lifePoint: this.conf.get('MAXLIFE'),
-            id
+            id,
+            x: 300 + numberOfPlayets * 50 * offsetDirection,
+            y: 300 + numberOfPlayets * 50 * offsetDirection
         };
     }
     removePlayer(id) {
