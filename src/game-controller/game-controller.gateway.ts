@@ -14,6 +14,7 @@ import { UnRegisteredGuard } from '../register/unregister.guard';
 import { RegisteredGuard } from '../register/register.guard';
 import {Logger, UseGuards} from '@nestjs/common';
 import {TurretService} from "../turret/turret.service";
+import {ConfigService} from "@nestjs/config";
 
 @WebSocketGateway({
   cors: {
@@ -29,6 +30,7 @@ export class GameControllerGateway
   constructor(
       private readonly turretService: TurretService,
       private readonly playerService: PlayersService,
+      private readonly confServe: ConfigService
       ) {}
 
   @UseGuards(UnRegisteredGuard)
@@ -58,6 +60,18 @@ export class GameControllerGateway
       });
     });
   }
+
+
+  @SubscribeMessage('config')
+  getConfig(): any {
+    return {
+      width: parseInt(this.confServe.get('WIDTH')),
+      height: parseInt(this.confServe.get('HEIGHT')),
+      maxLife: parseInt(this.confServe.get('MAXLIFE')),
+      turrets: parseInt(this.confServe.get('TURRETS'))
+    }
+  }
+
   @UseGuards(RegisteredGuard)
   @SubscribeMessage('stop')
   stop(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {

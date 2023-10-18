@@ -16,14 +16,14 @@ let TurretService = class TurretService {
     constructor(conf) {
         this.conf = conf;
         this.turrets = [];
-        for (let i = 0; i < this.conf.get('TURRETS'); i++) {
+        for (let i = 0; i < parseInt(this.conf.get('TURRETS')); i++) {
             this.turrets.push(this.makeTurret());
         }
     }
     makeTurret() {
         return {
-            x: Math.floor(Math.random() * this.conf.get('WIDTH')),
-            y: Math.floor(Math.random() * this.conf.get('HEIGHT')),
+            x: Math.floor(Math.random() * parseInt(this.conf.get('WIDTH'))),
+            y: Math.floor(Math.random() * parseInt(this.conf.get('HEIGHT'))),
             rotationSpeed: Math.random() * 0.5,
             firingRate: 40 + Math.floor(Math.random() * 30),
             rotation: Math.random() * Math.PI,

@@ -20,10 +20,12 @@ const unregister_guard_1 = require("../register/unregister.guard");
 const register_guard_1 = require("../register/register.guard");
 const common_1 = require("@nestjs/common");
 const turret_service_1 = require("../turret/turret.service");
+const config_1 = require("@nestjs/config");
 let GameControllerGateway = class GameControllerGateway {
-    constructor(turretService, playerService) {
+    constructor(turretService, playerService, confServe) {
         this.turretService = turretService;
         this.playerService = playerService;
+        this.confServe = confServe;
         this.log = new common_1.Logger();
     }
     handleRegistration(id, socket) {
@@ -49,6 +51,14 @@ let GameControllerGateway = class GameControllerGateway {
                 });
             });
         });
+    }
+    getConfig() {
+        return {
+            width: parseInt(this.confServe.get('WIDTH')),
+            height: parseInt(this.confServe.get('HEIGHT')),
+            maxLife: parseInt(this.confServe.get('MAXLIFE')),
+            turrets: parseInt(this.confServe.get('TURRETS'))
+        };
     }
     stop(id, socket) {
         this.playerService.getPlayers().forEach(playerId => {
@@ -91,6 +101,14 @@ let GameControllerGateway = class GameControllerGateway {
             }
         });
     }
+    fireBullet(id, socket) {
+        this.playerService.getPlayers().forEach(playerId => {
+            if (playerId !== socket.id) {
+                this.log.log('[fireBullete] sending new player state');
+                this.server.sockets.sockets.get(playerId).emit('fireBullet', { id });
+            }
+        });
+    }
     afterInit(server) {
         this.log.warn('Server started, config : ', server._opts);
         this.server = server;
@@ -113,6 +131,12 @@ __decorate([
     __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GameControllerGateway.prototype, "handleRegistration", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('config'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Object)
+], GameControllerGateway.prototype, "getConfig", null);
 __decorate([
     (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
     (0, websockets_1.SubscribeMessage)('stop'),
@@ -158,6 +182,15 @@ __decorate([
     __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GameControllerGateway.prototype, "stopRotation", null);
+__decorate([
+    (0, common_1.UseGuards)(register_guard_1.RegisteredGuard),
+    (0, websockets_1.SubscribeMessage)('fireBullet'),
+    __param(0, (0, websockets_1.MessageBody)('id')),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], GameControllerGateway.prototype, "fireBullet", null);
 exports.GameControllerGateway = GameControllerGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
@@ -165,6 +198,7 @@ exports.GameControllerGateway = GameControllerGateway = __decorate([
         },
     }),
     __metadata("design:paramtypes", [turret_service_1.TurretService,
-        players_service_1.PlayersService])
+        players_service_1.PlayersService,
+        config_1.ConfigService])
 ], GameControllerGateway);
 //# sourceMappingURL=game-controller.gateway.js.map
