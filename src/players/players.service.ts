@@ -2,6 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {Player} from './player.interface';
 import {ConfigService} from '@nestjs/config';
 import {of} from "rxjs";
+import {getColors} from "./bulet-color";
 
 @Injectable()
 export class PlayersService {
@@ -32,6 +33,7 @@ export class PlayersService {
         return {
             lifePoint: this.conf.get('MAXLIFE'),
             id,
+            bulletColor: getColors(),
             x: 300 + numberOfPlayets * 50 * offsetDirection,
             y: 300 + numberOfPlayets * 50 * offsetDirection
         };
