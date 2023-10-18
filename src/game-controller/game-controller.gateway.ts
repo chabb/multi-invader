@@ -114,6 +114,17 @@ export class GameControllerGateway
     });
   }
 
+  @UseGuards(RegisteredGuard)
+  @SubscribeMessage('fireBullet')
+  fireBullet(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
+      this.playerService.getPlayers().forEach(playerId => {
+        if( playerId !== socket.id) {
+          this.log.log('[fireBullete] sending new player state');
+          this.server.sockets.sockets.get(playerId).emit('fireBullet', {id})
+        }
+      });
+  }
+
   afterInit(server: Server): void {
     this.log.warn('Server started, config : ', server._opts);
     this.server = server;
