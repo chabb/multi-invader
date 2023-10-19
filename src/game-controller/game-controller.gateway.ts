@@ -35,8 +35,10 @@ export class GameControllerGateway
 
   @UseGuards(UnRegisteredGuard)
   @SubscribeMessage('register')
-  handleRegistration(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
-    this.log.log(`new player registration ${id}`);
+  handleRegistration(@MessageBody('id') id: string,
+                     @MessageBody('playerTanks') playerTanks: any[],
+                     @ConnectedSocket() socket: Socket): void {
+    this.log.log(`new player registration ${id} ${playerTanks}`);
     socket.emit('registered', { id: socket.id }, () => {
       this.log.log(`player ${socket.id} connected`);
       const player = this.playerService.createPlayer(id);
@@ -45,10 +47,12 @@ export class GameControllerGateway
       socket.emit('state', {
         turrets: this.turretService.getTurrets(),
         playerTank: player,
-        player: this.playerService.getPlayers().length
+        player: this.playerService.getPlayers().length,
+        playerTanks: playerTanks
       }, () => {
         this.log.log(`game state sent to ${socket.id}`)
         this.playerService.addPlayer(player);
+        // we must sent this new players to all the old players
         this.playerService.getPlayers().forEach(playerId => {
           if( playerId !== socket.id) {
             this.log.log('sending new player state');
@@ -151,5 +155,6 @@ export class GameControllerGateway
   handleDisconnect(socket: Socket): void {
     this.log.warn(` Client ${socket.id} disconnected`);
     this.playerService.removePlayer(socket.id);
+    socket.emit('playerDisconnect', { id: socket.id });
   }
 }

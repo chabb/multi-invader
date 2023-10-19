@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlayersService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const bulet_color_1 = require("./bulet-color");
+const player_color_1 = require("./player-color");
 let PlayersService = class PlayersService {
     constructor(conf) {
         this.conf = conf;
@@ -35,6 +37,8 @@ let PlayersService = class PlayersService {
         return {
             lifePoint: this.conf.get('MAXLIFE'),
             id,
+            bulletColor: (0, bulet_color_1.getBulletColor)(),
+            playerColor: (0, player_color_1.getPlayerColor)(),
             x: 300 + numberOfPlayets * 50 * offsetDirection,
             y: 300 + numberOfPlayets * 50 * offsetDirection
         };

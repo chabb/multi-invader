@@ -47,6 +47,9 @@ let GameControllerGateway = class GameControllerGateway {
                         this.server.sockets.sockets.get(playerId).emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
                             this.log.log(`player ${playerId} info sent to player`, socket.id);
                         });
+                        socket.emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
+                            this.log.log(`old player ${playerId} info sent to player`, socket.id);
+                        });
                     }
                 });
             });
