@@ -10,7 +10,7 @@ export declare class GameControllerGateway implements OnGatewayConnection, OnGat
     private readonly log;
     private server;
     constructor(turretService: TurretService, playerService: PlayersService, confServe: ConfigService);
-    handleRegistration(id: string, playerTanks: any[], socket: Socket): void;
+    handleRegistration(id: string, socket: Socket): void;
     getConfig(): any;
     stop(id: string, socket: Socket): void;
     handleEvents(id: string, socket: Socket): void;

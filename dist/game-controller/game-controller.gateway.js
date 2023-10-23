@@ -28,30 +28,47 @@ let GameControllerGateway = class GameControllerGateway {
         this.confServe = confServe;
         this.log = new common_1.Logger();
     }
-    handleRegistration(id, playerTanks, socket) {
-        this.log.log(`new player registration ${id} ${playerTanks}`);
+    handleRegistration(id, socket) {
+        this.log.log(`new player registration ${id}`);
         socket.emit('registered', { id: socket.id }, () => {
             this.log.log(`player ${socket.id} connected`);
             const player = this.playerService.createPlayer(id);
             this.log.debug('current number of player', this.playerService.getPlayers().length);
-            socket.emit('state', {
-                turrets: this.turretService.getTurrets(),
-                playerTank: player,
-                player: this.playerService.getPlayers().length,
-                playerTanks
-            }, () => {
-                this.log.log(`game state sent to ${socket.id}`);
-                this.playerService.addPlayer(player);
-                this.log.log(`we have ${this.playerService.numberOfPlayers()} players`);
-                this.playerService.getPlayers().forEach(playerId => {
-                    if (playerId !== socket.id) {
-                        this.log.log('sending new player state');
-                        this.server.sockets.sockets.get(playerId).emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
-                            this.log.log(`player ${playerId} info sent to player`, socket.id);
+            if (this.playerService.getPlayers().length >= 1) {
+                const id = this.playerService.getPlayers()[0];
+                this.log.warn(`Retrieving current state from the first player ${id}`);
+                this.server.sockets.sockets.get(id).emit('getState', { id }, tanks => {
+                    this.log.log('[GET STATE] tanks', tanks);
+                    socket.emit('state', {
+                        turrets: this.turretService.getTurrets(),
+                        playerTank: player,
+                        player: this.playerService.getPlayers().length,
+                        playerTanks: tanks
+                    }, () => {
+                        this.log.log(`game state sent to ${socket.id}`);
+                        this.playerService.addPlayer(player);
+                        this.log.log(`we now have ${this.playerService.numberOfPlayers()} players`);
+                        this.playerService.getPlayers().forEach(playerId => {
+                            if (playerId !== socket.id) {
+                                this.log.log('sending new player state');
+                                this.server.sockets.sockets.get(playerId).emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
+                                    this.log.log(`player ${playerId} info sent to player`, socket.id);
+                                });
+                            }
                         });
-                    }
+                    });
                 });
-            });
+            }
+            else {
+                this.log.warn('FIRST PLAYER REGISTERED');
+                this.playerService.addPlayer(player);
+                socket.emit('state', {
+                    turrets: this.turretService.getTurrets(),
+                    playerTank: player,
+                    player: this.playerService.getPlayers().length,
+                    playerTanks: []
+                }, () => this.log.log(`game state sent to ${socket.id}`));
+            }
         });
     }
     getConfig() {
@@ -71,10 +88,9 @@ let GameControllerGateway = class GameControllerGateway {
         });
     }
     handleEvents(id, socket) {
-        this.log.log(`forward ${socket.id}-${id}`);
         this.playerService.getPlayers().forEach(playerId => {
             if (playerId !== socket.id) {
-                this.log.log(`sending new player state from ${id} to ${playerId}`);
+                this.log.log(`[moveForward] sending new player state from ${id} to ${playerId}`);
                 this.server.sockets.sockets.get(playerId).emit('forward', { id });
             }
         });
@@ -129,10 +145,9 @@ __decorate([
     (0, common_1.UseGuards)(unregister_guard_1.UnRegisteredGuard),
     (0, websockets_1.SubscribeMessage)('register'),
     __param(0, (0, websockets_1.MessageBody)('id')),
-    __param(1, (0, websockets_1.MessageBody)('playerTanks')),
-    __param(2, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Array, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GameControllerGateway.prototype, "handleRegistration", null);
 __decorate([
