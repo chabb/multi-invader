@@ -48,11 +48,12 @@ export class GameControllerGateway
         turrets: this.turretService.getTurrets(),
         playerTank: player,
         player: this.playerService.getPlayers().length,
-        playerTanks: playerTanks
+        playerTanks
       }, () => {
         this.log.log(`game state sent to ${socket.id}`)
         this.playerService.addPlayer(player);
-        // we must sent this new players to all the old players
+        // send the old players to the new player
+        this.log.log(`we have ${this.playerService.numberOfPlayers()} players`)
         this.playerService.getPlayers().forEach(playerId => {
           if( playerId !== socket.id) {
             this.log.log('sending new player state');
@@ -137,7 +138,7 @@ export class GameControllerGateway
   fireBullet(@MessageBody('id') id: string, @ConnectedSocket() socket: Socket): void {
       this.playerService.getPlayers().forEach(playerId => {
         if( playerId !== socket.id) {
-          this.log.log('[fireBullete] sending new player state');
+          this.log.log('[fireBullet] sending new player state');
           this.server.sockets.sockets.get(playerId).emit('fireBullet', {id})
         }
       });

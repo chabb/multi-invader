@@ -28,8 +28,8 @@ let GameControllerGateway = class GameControllerGateway {
         this.confServe = confServe;
         this.log = new common_1.Logger();
     }
-    handleRegistration(id, socket) {
-        this.log.log(`new player registration ${id}`);
+    handleRegistration(id, playerTanks, socket) {
+        this.log.log(`new player registration ${id} ${playerTanks}`);
         socket.emit('registered', { id: socket.id }, () => {
             this.log.log(`player ${socket.id} connected`);
             const player = this.playerService.createPlayer(id);
@@ -37,18 +37,17 @@ let GameControllerGateway = class GameControllerGateway {
             socket.emit('state', {
                 turrets: this.turretService.getTurrets(),
                 playerTank: player,
-                player: this.playerService.getPlayers().length
+                player: this.playerService.getPlayers().length,
+                playerTanks
             }, () => {
                 this.log.log(`game state sent to ${socket.id}`);
                 this.playerService.addPlayer(player);
+                this.log.log(`we have ${this.playerService.numberOfPlayers()} players`);
                 this.playerService.getPlayers().forEach(playerId => {
                     if (playerId !== socket.id) {
                         this.log.log('sending new player state');
                         this.server.sockets.sockets.get(playerId).emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
                             this.log.log(`player ${playerId} info sent to player`, socket.id);
-                        });
-                        socket.emit('player', { id: socket.id, index: this.playerService.getPlayers().length, player }, () => {
-                            this.log.log(`old player ${playerId} info sent to player`, socket.id);
                         });
                     }
                 });
@@ -107,7 +106,7 @@ let GameControllerGateway = class GameControllerGateway {
     fireBullet(id, socket) {
         this.playerService.getPlayers().forEach(playerId => {
             if (playerId !== socket.id) {
-                this.log.log('[fireBullete] sending new player state');
+                this.log.log('[fireBullet] sending new player state');
                 this.server.sockets.sockets.get(playerId).emit('fireBullet', { id });
             }
         });
@@ -122,6 +121,7 @@ let GameControllerGateway = class GameControllerGateway {
     handleDisconnect(socket) {
         this.log.warn(` Client ${socket.id} disconnected`);
         this.playerService.removePlayer(socket.id);
+        socket.emit('playerDisconnect', { id: socket.id });
     }
 };
 exports.GameControllerGateway = GameControllerGateway;
@@ -129,9 +129,10 @@ __decorate([
     (0, common_1.UseGuards)(unregister_guard_1.UnRegisteredGuard),
     (0, websockets_1.SubscribeMessage)('register'),
     __param(0, (0, websockets_1.MessageBody)('id')),
-    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)('playerTanks')),
+    __param(2, (0, websockets_1.ConnectedSocket)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, socket_io_1.Socket]),
+    __metadata("design:paramtypes", [String, Array, socket_io_1.Socket]),
     __metadata("design:returntype", void 0)
 ], GameControllerGateway.prototype, "handleRegistration", null);
 __decorate([
