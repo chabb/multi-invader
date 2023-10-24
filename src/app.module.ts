@@ -5,6 +5,8 @@ import { GameControllerGateway } from './game-controller/game-controller.gateway
 import { PlayersService } from './players/players.service';
 import { ConfigModule } from '@nestjs/config';
 import { TurretService } from './turret/turret.service';
+import { ConfigController } from './config/config.controller';
+import { GameConfigService } from './game-config/game-config.service';
 
 @Module({
   imports: [
@@ -12,7 +14,13 @@ import { TurretService } from './turret/turret.service';
       isGlobal: true,
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService, GameControllerGateway, PlayersService, TurretService],
+  controllers: [AppController, ConfigController],
+  providers: [
+    AppService,
+    GameControllerGateway,
+    PlayersService,
+    TurretService,
+    GameConfigService,
+  ],
 })
 export class AppModule {}
